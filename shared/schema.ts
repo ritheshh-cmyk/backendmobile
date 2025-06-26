@@ -1,31 +1,38 @@
 import { pgTable, text, serial, decimal, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// User Management
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+});
+
+// Transaction Management
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   customerName: text("customer_name").notNull(),
-  mobileNumber: varchar("mobile_number", { length: 20 }).notNull(),
+  mobileNumber: text("mobile_number").notNull(),
   deviceModel: text("device_model").notNull(),
   repairType: text("repair_type").notNull(),
   repairCost: decimal("repair_cost", { precision: 10, scale: 2 }).notNull(),
-  actualCost: decimal("actual_cost", { precision: 10, scale: 2 }).default("0").notNull(), // Cost of parts/items from suppliers
-  profit: decimal("profit", { precision: 10, scale: 2 }).default("0").notNull(), // Calculated profit
-  paymentMethod: text("payment_method").notNull(),
+  actualCost: decimal("actual_cost", { precision: 10, scale: 2 }),
+  profit: decimal("profit", { precision: 10, scale: 2 }),
   amountGiven: decimal("amount_given", { precision: 10, scale: 2 }).notNull(),
   changeReturned: decimal("change_returned", { precision: 10, scale: 2 }).notNull(),
-  freeGlassInstallation: boolean("free_glass_installation").default(false).notNull(),
+  paymentMethod: text("payment_method").notNull(),
+  externalStoreName: text("external_store_name"),
+  externalItemName: text("external_item_name"),
+  externalItemCost: decimal("external_item_cost", { precision: 10, scale: 2 }),
+  internalCost: decimal("internal_cost", { precision: 10, scale: 2 }),
+  freeGlassInstallation: boolean("free_glass_installation").notNull(),
   remarks: text("remarks"),
-  status: text("status").notNull().default("completed"),
-  requiresInventory: boolean("requires_inventory").default(false).notNull(),
-  supplierName: text("supplier_name"), // Where parts were sourced from
-  partsCost: text("parts_cost"), // JSON string of parts breakdown
-  customSupplierName: text("custom_supplier_name"), // Custom supplier name if "Other" is selected
-  externalStoreName: text("external_store_name"), // Store name for external purchase
-  externalItemName: text("external_item_name"), // Item name for external purchase
-  externalItemCost: decimal("external_item_cost", { precision: 10, scale: 2 }), // Item cost for external purchase
-  externalPurchases: text("external_purchases"), // JSON string of external purchases array
-  internalCost: decimal("internal_cost", { precision: 10, scale: 2 }).default("0"), // Internal cost for repairs
+  status: text("status").notNull(),
+  requiresInventory: boolean("requires_inventory").notNull(),
+  supplierName: text("supplier_name"),
+  partsCost: decimal("parts_cost", { precision: 10, scale: 2 }),
+  customSupplierName: text("custom_supplier_name"),
+  externalPurchases: text("external_purchases"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -33,8 +40,8 @@ export const transactions = pgTable("transactions", {
 export const inventoryItems = pgTable("inventory_items", {
   id: serial("id").primaryKey(),
   partName: text("part_name").notNull(),
-  partType: text("part_type").notNull(), // display, battery, charging_port, etc.
-  compatibleDevices: text("compatible_devices"), // comma-separated device models
+  partType: text("part_type").notNull(),
+  compatibleDevices: text("compatible_devices"),
   cost: decimal("cost", { precision: 10, scale: 2 }).notNull(),
   sellingPrice: decimal("selling_price", { precision: 10, scale: 2 }).notNull(),
   quantity: serial("quantity").notNull(),
@@ -59,7 +66,7 @@ export const purchaseOrders = pgTable("purchase_orders", {
   quantity: serial("quantity").notNull(),
   unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull(),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").notNull().default("pending"), // pending, received, paid
+  status: text("status").notNull().default("pending"),
   orderDate: timestamp("order_date").defaultNow().notNull(),
   receivedDate: timestamp("received_date"),
 });
@@ -79,25 +86,25 @@ export const expenditures = pgTable("expenditures", {
   id: serial("id").primaryKey(),
   description: text("description").notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  category: text("category").notNull(), // parts, tools, rent, utilities, etc.
+  category: text("category").notNull(),
   paymentMethod: text("payment_method").notNull(),
-  recipient: text("recipient"), // who received the payment
-  items: text("items"), // items purchased
-  paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }).default("0").notNull(), // amount paid
-  remainingAmount: decimal("remaining_amount", { precision: 10, scale: 2 }).default("0").notNull(), // remaining amount
+  recipient: text("recipient"),
+  items: text("items"),
+  paidAmount: decimal("paid_amount", { precision: 10, scale: 2 }).default("0").notNull(),
+  remainingAmount: decimal("remaining_amount", { precision: 10, scale: 2 }).default("0").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Grouped Expenditures (for monthly/daily payments like internet, electricity)
+// Grouped Expenditures
 export const groupedExpenditures = pgTable("grouped_expenditures", {
   id: serial("id").primaryKey(),
-  providerName: text("provider_name").notNull(), // e.g., "Internet Provider", "Electricity Board"
-  category: text("category").notNull(), // "monthly", "daily", "weekly"
-  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(), // Total amount for the period
-  periodStart: timestamp("period_start").notNull(), // Start of billing period
-  periodEnd: timestamp("period_end").notNull(), // End of billing period
-  description: text("description"), // Additional details
-  status: text("status").notNull().default("pending"), // pending, partially_paid, paid
+  providerName: text("provider_name").notNull(),
+  category: text("category").notNull(),
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -105,14 +112,14 @@ export const groupedExpenditures = pgTable("grouped_expenditures", {
 export const groupedExpenditurePayments = pgTable("grouped_expenditure_payments", {
   id: serial("id").primaryKey(),
   groupedExpenditureId: serial("grouped_expenditure_id").references(() => groupedExpenditures.id).notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(), // Amount paid
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   paymentMethod: text("payment_method").notNull(),
   paymentDate: timestamp("payment_date").defaultNow().notNull(),
-  description: text("description"), // Payment notes
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// External purchase schema for validation
+// Zod schemas for validation
 const externalPurchaseSchema = z.object({
   store: z.string().min(1, "Supplier is required"),
   item: z.string().min(1, "Item name is required"),
@@ -120,10 +127,7 @@ const externalPurchaseSchema = z.object({
   customStore: z.string().optional()
 });
 
-export const insertTransactionSchema = createInsertSchema(transactions).omit({
-  id: true,
-  createdAt: true,
-}).extend({
+export const insertTransactionSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
   mobileNumber: z.string().min(1, "Mobile number is required"),
   deviceModel: z.string().min(1, "Device model is required"),
@@ -133,70 +137,87 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   profit: z.coerce.number().optional(),
   amountGiven: z.coerce.number().min(0, "Amount given must be 0 or greater"),
   changeReturned: z.coerce.number().min(0),
+  paymentMethod: z.string().min(1, "Payment method is required"),
   externalStoreName: z.string().optional(),
   externalItemName: z.string().optional(),
   externalItemCost: z.coerce.number().optional(),
   externalPurchases: z.array(externalPurchaseSchema).optional(),
   internalCost: z.coerce.number().min(0).optional(),
+  freeGlassInstallation: z.boolean().optional(),
+  remarks: z.string().optional(),
+  status: z.string().optional(),
+  requiresInventory: z.boolean().optional(),
+  supplierName: z.string().optional(),
+  partsCost: z.string().optional(),
+  customSupplierName: z.string().optional(),
 });
 
-export const insertInventoryItemSchema = createInsertSchema(inventoryItems).omit({
-  id: true,
-  createdAt: true,
-}).extend({
+export const insertInventoryItemSchema = z.object({
+  partName: z.string().min(1, "Part name is required"),
+  partType: z.string().min(1, "Part type is required"),
+  compatibleDevices: z.string().optional(),
   cost: z.coerce.number().min(0),
   sellingPrice: z.coerce.number().min(0),
   quantity: z.coerce.number().min(0),
+  supplier: z.string().min(1, "Supplier is required"),
 });
 
-export const insertSupplierSchema = createInsertSchema(suppliers).omit({
-  id: true,
-  createdAt: true,
+export const insertSupplierSchema = z.object({
+  name: z.string().min(1, "Supplier name is required"),
+  contactNumber: z.string().optional(),
+  address: z.string().optional(),
 });
 
-export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).omit({
-  id: true,
-  orderDate: true,
-  receivedDate: true,
-}).extend({
+export const insertPurchaseOrderSchema = z.object({
+  supplierId: z.coerce.number().min(1),
+  itemName: z.string().min(1, "Item name is required"),
   quantity: z.coerce.number().min(1),
   unitCost: z.coerce.number().min(0),
   totalCost: z.coerce.number().min(0),
+  status: z.string().optional(),
 });
 
-export const insertSupplierPaymentSchema = createInsertSchema(supplierPayments).omit({
-  id: true,
-  paymentDate: true,
-}).extend({
+export const insertSupplierPaymentSchema = z.object({
+  supplierId: z.coerce.number().min(1),
   amount: z.coerce.number().min(0),
+  paymentMethod: z.string().min(1, "Payment method is required"),
+  description: z.string().optional(),
 });
 
-export const insertExpenditureSchema = createInsertSchema(expenditures).omit({
-  id: true,
-  createdAt: true,
-}).extend({
+export const insertExpenditureSchema = z.object({
+  description: z.string().min(1, "Description is required"),
   amount: z.coerce.number().min(0),
+  category: z.string().min(1, "Category is required"),
+  paymentMethod: z.string().min(1, "Payment method is required"),
+  recipient: z.string().optional(),
+  items: z.string().optional(),
   paidAmount: z.coerce.number().min(0).optional(),
   remainingAmount: z.coerce.number().min(0).optional(),
 });
 
-export const insertGroupedExpenditureSchema = createInsertSchema(groupedExpenditures).omit({
-  id: true,
-  createdAt: true,
-}).extend({
+export const insertGroupedExpenditureSchema = z.object({
+  providerName: z.string().min(1, "Provider name is required"),
+  category: z.string().min(1, "Category is required"),
   totalAmount: z.coerce.number().min(0),
   periodStart: z.coerce.date(),
   periodEnd: z.coerce.date(),
+  description: z.string().optional(),
+  status: z.string().optional(),
 });
 
-export const insertGroupedExpenditurePaymentSchema = createInsertSchema(groupedExpenditurePayments).omit({
-  id: true,
-  paymentDate: true,
-  createdAt: true,
-}).extend({
+export const insertGroupedExpenditurePaymentSchema = z.object({
+  groupedExpenditureId: z.coerce.number().min(1),
   amount: z.coerce.number().min(0),
+  paymentMethod: z.string().min(1, "Payment method is required"),
+  description: z.string().optional(),
 });
 
+export const insertUserSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+// Type exports
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertInventoryItem = z.infer<typeof insertInventoryItemSchema>;
@@ -213,18 +234,5 @@ export type InsertGroupedExpenditure = z.infer<typeof insertGroupedExpenditureSc
 export type GroupedExpenditure = typeof groupedExpenditures.$inferSelect;
 export type InsertGroupedExpenditurePayment = z.infer<typeof insertGroupedExpenditurePaymentSchema>;
 export type GroupedExpenditurePayment = typeof groupedExpenditurePayments.$inferSelect;
-
-// Keep existing user schema
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;

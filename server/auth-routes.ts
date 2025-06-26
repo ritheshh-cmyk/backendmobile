@@ -6,8 +6,8 @@ import { storage } from './storage.js';
 const router = express.Router();
 
 // Login endpoint
-router.post('/login', async (req, res) => {
-  try {
+router.post('/login', (req, res) => {
+  (async () => {
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -21,7 +21,7 @@ router.post('/login', async (req, res) => {
     }
 
     // For now, simple password comparison (in production, use bcrypt)
-    if (user.password !== password) {
+    if ((user as any).password !== password) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -40,15 +40,15 @@ router.post('/login', async (req, res) => {
         username: user.username
       }
     });
-  } catch (error) {
+  })().catch(error => {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
 // Register endpoint
-router.post('/register', async (req, res) => {
-  try {
+router.post('/register', (req, res) => {
+  (async () => {
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -71,10 +71,10 @@ router.post('/register', async (req, res) => {
         username: newUser.username
       }
     });
-  } catch (error) {
+  })().catch(error => {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
 export default router;

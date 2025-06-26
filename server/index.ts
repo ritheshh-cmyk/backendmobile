@@ -1,83 +1,57 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { createServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
+import express from 'express';
+import cors from 'cors';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import { registerRoutes } from './routes.js';
+import { initializeDatabase } from '../lib/database.js';
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"]
+  }
 });
 
-(async () => {
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Basic health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Mobile Repair Tracker Backend is running' });
+});
+
+// Initialize database and register routes
+const startServer = async () => {
   try {
-    // Create HTTP server and Socket.IO server
-    const httpServer = createServer(app);
-    const io = new SocketIOServer(httpServer, {
-      cors: { origin: "*" }, // adjust as needed for production
-    });
-
-    // Pass io to registerRoutes (no longer returns a server)
+    // Initialize database
+    await initializeDatabase();
+    
+    // Register all API routes
     await registerRoutes(app, io);
-
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      res.status(status).json({ message });
-      throw err;
+    
+    // Socket.IO connection handling
+    io.on('connection', (socket) => {
+      console.log('Client connected:', socket.id);
+      
+      socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+      });
     });
 
-    if (app.get("env") === "development") {
-      await setupVite(app, httpServer);
-    } else {
-      serveStatic(app);
-    }
+    const PORT = process.env.PORT || 10000;
 
-    const port = 5000;
-    httpServer.listen({
-      port,
-      host: "127.0.0.1"
-    }, () => {
-      log(`serving on port ${port}`);
+    server.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+      console.log(`🌐 Health check: http://localhost:${PORT}/health`);
+      console.log(`📊 API endpoints available at: http://localhost:${PORT}/api`);
     });
-  } catch (err) {
-    console.error("Fatal error during server startup:", err);
-    try {
-      console.error("Error (string):", String(err));
-      console.error("Error (JSON):", JSON.stringify(err));
-    } catch (jsonErr) {
-      console.error("Error could not be stringified:", jsonErr);
-    }
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
-})();
+};
+
+startServer();
