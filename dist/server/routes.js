@@ -1,5 +1,5 @@
 import { createServer } from "http";
-import { storage } from "./storage.js";
+import { storage } from "./storage";
 import authRoutes from "./auth-routes.js";
 import { insertTransactionSchema, insertInventoryItemSchema, insertSupplierSchema, insertSupplierPaymentSchema, insertExpenditureSchema, insertGroupedExpenditureSchema, insertGroupedExpenditurePaymentSchema } from "../shared/schema.js";
 import { z } from "zod";

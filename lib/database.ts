@@ -1,22 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 
-// Check if DATABASE_URL is available, otherwise use a fallback
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy';
-
-let sql: any;
-
-try {
-  sql = neon(databaseUrl);
-} catch (error) {
-  console.warn('⚠️ Database connection failed, using in-memory storage fallback');
-  // Create a mock sql object for development/deployment without database
-  sql = {
-    async query(strings: any, ...values: any[]) {
-      console.log('Mock database query:', strings, values);
-      return [];
-    }
-  };
-}
+const sql = neon(process.env.DATABASE_URL!);
 
 // Database schema
 export const createTables = async () => {

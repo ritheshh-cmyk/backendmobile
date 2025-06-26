@@ -1,6 +1,6 @@
 import type { Express, RequestHandler } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage.js";
+import { storage } from "./storage";
 import type { Server as SocketIOServer } from "socket.io";
 import authRoutes from "./auth-routes.js";
 import { 

@@ -391,7 +391,7 @@ class MemStorage {
       summary.push({
         supplierId: supplier.id,
         supplierName: supplier.name,
-        totalPaid: totalPaid.toString(),
+          totalPaid,
         paymentCount: payments.length,
         lastPayment: payments.length > 0 ? Math.max(...payments.map(p => p.paymentDate.getTime())) : null
       });
@@ -401,3 +401,13 @@ class MemStorage {
 }
 
 export const storage = new MemStorage();
+
+// Initialize with default admin user
+storage.createUser({
+  username: 'admin',
+  password: 'admin123'
+}).then(() => {
+  console.log('✅ Default admin user created: admin/admin123');
+}).catch((error) => {
+  console.log('⚠️ Default admin user already exists or creation failed:', error.message);
+});

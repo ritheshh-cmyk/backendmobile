@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { registerRoutes } from './routes.js';
+import { initializeDatabase } from '../lib/database.js';
 
 const app = express();
 const server = createServer(app);
@@ -22,9 +23,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Mobile Repair Tracker Backend is running' });
 });
 
-// Register routes and start server
+// Initialize database and register routes
 const startServer = async () => {
   try {
+    // Initialize database
+    await initializeDatabase();
+    
     // Register all API routes
     await registerRoutes(app, io);
     
