@@ -1701,12 +1701,18 @@ export declare const insertGroupedExpenditurePaymentSchema: z.ZodObject<{
 export declare const insertUserSchema: z.ZodObject<{
     username: z.ZodString;
     password: z.ZodString;
+    role: z.ZodOptional<z.ZodString>;
+    permanent: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
     username?: string;
     password?: string;
+    role?: string;
+    permanent?: boolean;
 }, {
     username?: string;
     password?: string;
+    role?: string;
+    permanent?: boolean;
 }>;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;

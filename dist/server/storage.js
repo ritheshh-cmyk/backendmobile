@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.storage = void 0;
 class MemStorage {
     constructor() {
         this.users = [];
@@ -17,10 +20,14 @@ class MemStorage {
         return this.users.find(u => u.id === id) || null;
     }
     async createUser(data) {
+        const id = this.users.length + 1;
         const user = {
-            id: this.users.length + 1,
+            id,
             username: data.username,
-            password: data.password
+            role: data.role || 'user',
+            permanent: data.permanent ?? false,
+            password: data.password,
+            createdAt: new Date().toISOString(),
         };
         this.users.push(user);
         return user;
@@ -318,13 +325,34 @@ class MemStorage {
         return summary;
     }
 }
-export const storage = new MemStorage();
-storage.createUser({
+exports.storage = new MemStorage();
+exports.storage.createUser({
     username: 'admin',
-    password: 'admin123'
+    password: 'admin123',
+    role: 'admin',
 }).then(() => {
     console.log('✅ Default admin user created: admin/admin123');
 }).catch((error) => {
     console.log('⚠️ Default admin user already exists or creation failed:', error.message);
+});
+exports.storage.createUser({
+    username: 'rajshekhar',
+    password: 'rajshekhar123',
+    role: 'owner',
+    permanent: true,
+}).then(() => {
+    console.log('✅ Permanent owner user created: rajshekhar/rajshekhar123');
+}).catch((error) => {
+    console.log('⚠️ Permanent owner user already exists or creation failed:', error.message);
+});
+exports.storage.createUser({
+    username: 'sravan',
+    password: 'sravan123',
+    role: 'worker',
+    permanent: true,
+}).then(() => {
+    console.log('✅ Permanent worker user created: sravan/sravan123');
+}).catch((error) => {
+    console.log('⚠️ Permanent worker user already exists or creation failed:', error.message);
 });
 //# sourceMappingURL=storage.js.map

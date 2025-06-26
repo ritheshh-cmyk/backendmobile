@@ -1,21 +1,28 @@
-import { createServer } from "http";
-import { storage } from "./storage.js";
-import authRoutes from "./auth-routes.js";
-import { insertTransactionSchema, insertInventoryItemSchema, insertSupplierSchema, insertSupplierPaymentSchema, insertExpenditureSchema, insertGroupedExpenditureSchema, insertGroupedExpenditurePaymentSchema } from "../shared/schema.js";
-import { z } from "zod";
-import ExcelJS from "exceljs";
-export async function registerRoutes(app, io) {
-    app.use("/api/auth", authRoutes);
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.registerRoutes = registerRoutes;
+const http_1 = require("http");
+const storage_1 = require("./storage");
+const auth_routes_1 = __importDefault(require("./auth-routes"));
+const schema_1 = require("../shared/schema");
+const zod_1 = require("zod");
+const exceljs_1 = __importDefault(require("exceljs"));
+const axios_1 = __importDefault(require("axios"));
+async function registerRoutes(app, io) {
+    app.use("/api/auth", auth_routes_1.default);
     app.post("/api/transactions", async (req, res) => {
         try {
-            const validatedData = insertTransactionSchema.parse(req.body);
+            const validatedData = schema_1.insertTransactionSchema.parse(req.body);
             const transactionData = validatedData;
-            const transaction = await storage.createTransaction(transactionData);
+            const transaction = await storage_1.storage.createTransaction(transactionData);
             res.json(transaction);
             io.emit("transactionCreated", transaction);
         }
         catch (error) {
-            if (error instanceof z.ZodError) {
+            if (error instanceof zod_1.z.ZodError) {
                 res.status(400).json({ message: "Validation error", errors: error.errors });
             }
             else {
@@ -31,7 +38,7 @@ export async function registerRoutes(app, io) {
             const dateRange = req.query.dateRange;
             let transactions;
             if (search) {
-                transactions = await storage.searchTransactions(search);
+                transactions = await storage_1.storage.searchTransactions(search);
             }
             else if (dateRange) {
                 const today = new Date();
@@ -54,10 +61,10 @@ export async function registerRoutes(app, io) {
                     default:
                         startDate = new Date(0);
                 }
-                transactions = await storage.getTransactionsByDateRange(startDate, endDate);
+                transactions = await storage_1.storage.getTransactionsByDateRange(startDate, endDate);
             }
             else {
-                transactions = await storage.getTransactions(limit, offset);
+                transactions = await storage_1.storage.getTransactions(limit, offset);
             }
             res.json(transactions);
         }
@@ -69,7 +76,7 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const id = parseInt(req.params.id);
-                const transaction = await storage.getTransaction(id);
+                const transaction = await storage_1.storage.getTransaction(id);
                 if (!transaction) {
                     return res.status(404).json({ message: "Transaction not found" });
                 }
@@ -86,15 +93,15 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const id = parseInt(req.params.id);
-                const validatedData = insertTransactionSchema.partial().parse(req.body);
-                const transaction = await storage.updateTransaction(id, validatedData);
+                const validatedData = schema_1.insertTransactionSchema.partial().parse(req.body);
+                const transaction = await storage_1.storage.updateTransaction(id, validatedData);
                 if (!transaction) {
                     return res.status(404).json({ message: "Transaction not found" });
                 }
                 res.json(transaction);
             }
             catch (error) {
-                if (error instanceof z.ZodError) {
+                if (error instanceof zod_1.z.ZodError) {
                     res.status(400).json({ message: "Validation error", errors: error.errors });
                 }
                 else {
@@ -109,7 +116,7 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const id = parseInt(req.params.id);
-                const success = await storage.deleteTransaction(id);
+                const success = await storage_1.storage.deleteTransaction(id);
                 if (!success) {
                     return res.status(404).json({ message: "Transaction not found" });
                 }
@@ -125,7 +132,7 @@ export async function registerRoutes(app, io) {
     app.get("/api/stats/today", (req, res) => {
         (async () => {
             try {
-                const stats = await storage.getTodayStats();
+                const stats = await storage_1.storage.getTodayStats();
                 res.json(stats);
             }
             catch (error) {
@@ -138,7 +145,7 @@ export async function registerRoutes(app, io) {
     app.get("/api/stats/week", (req, res) => {
         (async () => {
             try {
-                const stats = await storage.getWeekStats();
+                const stats = await storage_1.storage.getWeekStats();
                 res.json(stats);
             }
             catch (error) {
@@ -151,7 +158,7 @@ export async function registerRoutes(app, io) {
     app.get("/api/stats/month", (req, res) => {
         (async () => {
             try {
-                const stats = await storage.getMonthStats();
+                const stats = await storage_1.storage.getMonthStats();
                 res.json(stats);
             }
             catch (error) {
@@ -164,7 +171,7 @@ export async function registerRoutes(app, io) {
     app.get("/api/stats/year", (req, res) => {
         (async () => {
             try {
-                const stats = await storage.getYearStats();
+                const stats = await storage_1.storage.getYearStats();
                 res.json(stats);
             }
             catch (error) {
@@ -177,12 +184,12 @@ export async function registerRoutes(app, io) {
     app.post("/api/inventory", (req, res) => {
         (async () => {
             try {
-                const validatedData = insertInventoryItemSchema.parse(req.body);
-                const item = await storage.createInventoryItem(validatedData);
+                const validatedData = schema_1.insertInventoryItemSchema.parse(req.body);
+                const item = await storage_1.storage.createInventoryItem(validatedData);
                 res.json(item);
             }
             catch (error) {
-                if (error instanceof z.ZodError) {
+                if (error instanceof zod_1.z.ZodError) {
                     res.status(400).json({ message: "Validation error", errors: error.errors });
                 }
                 else {
@@ -201,10 +208,10 @@ export async function registerRoutes(app, io) {
                 const search = req.query.search;
                 let items;
                 if (search) {
-                    items = await storage.searchInventoryItems(search);
+                    items = await storage_1.storage.searchInventoryItems(search);
                 }
                 else {
-                    items = await storage.getInventoryItems(limit, offset);
+                    items = await storage_1.storage.getInventoryItems(limit, offset);
                 }
                 res.json(items);
             }
@@ -218,12 +225,12 @@ export async function registerRoutes(app, io) {
     app.post("/api/suppliers", (req, res) => {
         (async () => {
             try {
-                const validatedData = insertSupplierSchema.parse(req.body);
-                const supplier = await storage.createSupplier(validatedData);
+                const validatedData = schema_1.insertSupplierSchema.parse(req.body);
+                const supplier = await storage_1.storage.createSupplier(validatedData);
                 res.json(supplier);
             }
             catch (error) {
-                if (error instanceof z.ZodError) {
+                if (error instanceof zod_1.z.ZodError) {
                     res.status(400).json({ message: "Validation error", errors: error.errors });
                 }
                 else {
@@ -242,10 +249,10 @@ export async function registerRoutes(app, io) {
                 const search = req.query.search;
                 let suppliers;
                 if (search) {
-                    suppliers = await storage.searchSuppliers(search);
+                    suppliers = await storage_1.storage.searchSuppliers(search);
                 }
                 else {
-                    suppliers = await storage.getSuppliers(limit, offset);
+                    suppliers = await storage_1.storage.getSuppliers(limit, offset);
                 }
                 res.json(suppliers);
             }
@@ -259,15 +266,15 @@ export async function registerRoutes(app, io) {
     app.post("/api/supplier-payments", (req, res) => {
         (async () => {
             try {
-                const validatedData = insertSupplierPaymentSchema.parse(req.body);
-                const payment = await storage.createSupplierPayment(validatedData);
+                const validatedData = schema_1.insertSupplierPaymentSchema.parse(req.body);
+                const payment = await storage_1.storage.createSupplierPayment(validatedData);
                 res.json(payment);
                 io.emit("supplierPaymentMade", payment);
-                const summary = await storage.getSupplierExpenditureSummary();
+                const summary = await storage_1.storage.getSupplierExpenditureSummary();
                 io.emit("supplierSummaryChanged", summary);
             }
             catch (error) {
-                if (error instanceof z.ZodError) {
+                if (error instanceof zod_1.z.ZodError) {
                     res.status(400).json({ message: "Validation error", errors: error.errors });
                 }
                 else {
@@ -282,7 +289,7 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const supplierId = req.query.supplierId ? parseInt(req.query.supplierId) : undefined;
-                const payments = await storage.getSupplierPayments(supplierId);
+                const payments = await storage_1.storage.getSupplierPayments(supplierId);
                 res.json(payments);
             }
             catch (error) {
@@ -297,7 +304,7 @@ export async function registerRoutes(app, io) {
             try {
                 const limit = parseInt(req.query.limit) || 50;
                 const offset = parseInt(req.query.offset) || 0;
-                const orders = await storage.getPurchaseOrders(limit, offset);
+                const orders = await storage_1.storage.getPurchaseOrders(limit, offset);
                 res.json(orders);
             }
             catch (error) {
@@ -310,12 +317,12 @@ export async function registerRoutes(app, io) {
     app.post("/api/expenditures", (req, res) => {
         (async () => {
             try {
-                const validatedData = insertExpenditureSchema.parse(req.body);
-                const expenditure = await storage.createExpenditure(validatedData);
+                const validatedData = schema_1.insertExpenditureSchema.parse(req.body);
+                const expenditure = await storage_1.storage.createExpenditure(validatedData);
                 res.json(expenditure);
             }
             catch (error) {
-                if (error instanceof z.ZodError) {
+                if (error instanceof zod_1.z.ZodError) {
                     res.status(400).json({ message: "Validation error", errors: error.errors });
                 }
                 else {
@@ -335,7 +342,7 @@ export async function registerRoutes(app, io) {
                 const dateRange = req.query.dateRange;
                 let expenditures;
                 if (search) {
-                    expenditures = await storage.getExpenditures(limit, offset);
+                    expenditures = await storage_1.storage.getExpenditures(limit, offset);
                 }
                 else if (dateRange) {
                     const today = new Date();
@@ -358,10 +365,10 @@ export async function registerRoutes(app, io) {
                         default:
                             startDate = new Date(0);
                     }
-                    expenditures = await storage.getExpenditures(limit, offset);
+                    expenditures = await storage_1.storage.getExpenditures(limit, offset);
                 }
                 else {
-                    expenditures = await storage.getExpenditures(limit, offset);
+                    expenditures = await storage_1.storage.getExpenditures(limit, offset);
                 }
                 res.json(expenditures);
             }
@@ -376,13 +383,13 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const id = parseInt(req.params.id);
-                const success = await storage.deleteExpenditure(id);
+                const success = await storage_1.storage.deleteExpenditure(id);
                 if (!success) {
                     return res.status(404).json({ message: "Expenditure not found" });
                 }
                 res.json({ message: "Expenditure deleted successfully" });
                 io.emit("expenditureChanged", { id, action: "deleted" });
-                const summary = await storage.getSupplierExpenditureSummary();
+                const summary = await storage_1.storage.getSupplierExpenditureSummary();
                 io.emit("supplierSummaryChanged", summary);
             }
             catch (error) {
@@ -395,7 +402,7 @@ export async function registerRoutes(app, io) {
     app.get("/api/expenditures/supplier-summary", (req, res) => {
         (async () => {
             try {
-                const summary = await storage.getSupplierExpenditureSummary();
+                const summary = await storage_1.storage.getSupplierExpenditureSummary();
                 res.json(summary);
             }
             catch (error) {
@@ -412,7 +419,7 @@ export async function registerRoutes(app, io) {
                 if (!supplier || !amount || !paymentMethod) {
                     return res.status(400).json({ message: "Supplier, amount, and payment method are required" });
                 }
-                const result = await storage.createSupplierPayment({ supplierId: parseInt(supplier), amount, paymentMethod, description });
+                const result = await storage_1.storage.createSupplierPayment({ supplierId: parseInt(supplier), amount, paymentMethod, description });
                 if (result) {
                     res.json({
                         success: true,
@@ -420,7 +427,7 @@ export async function registerRoutes(app, io) {
                         message: `Payment of ₹${amount} recorded for ${supplier}`
                     });
                     io.emit("supplierPaymentMade", { supplierId: parseInt(supplier), amount, paymentMethod, description });
-                    const summary = await storage.getSupplierExpenditureSummary();
+                    const summary = await storage_1.storage.getSupplierExpenditureSummary();
                     io.emit("supplierSummaryChanged", summary);
                 }
                 else {
@@ -439,7 +446,7 @@ export async function registerRoutes(app, io) {
             try {
                 const reportType = req.query.type || "overview";
                 const dateRange = req.query.dateRange || "month";
-                const workbook = new ExcelJS.Workbook();
+                const workbook = new exceljs_1.default.Workbook();
                 const worksheet = workbook.addWorksheet(`${reportType}-${dateRange}`);
                 const today = new Date();
                 let startDate;
@@ -461,7 +468,7 @@ export async function registerRoutes(app, io) {
                     default:
                         startDate = new Date(0);
                 }
-                const transactions = await storage.getTransactions(1000, 0);
+                const transactions = await storage_1.storage.getTransactions(1000, 0);
                 const filteredTransactions = transactions.filter(t => {
                     const transactionDate = new Date(t.createdAt);
                     return transactionDate >= startDate && transactionDate <= endDate;
@@ -510,8 +517,8 @@ export async function registerRoutes(app, io) {
     });
     app.get("/api/export/excel", async (req, res) => {
         try {
-            const transactions = await storage.getTransactions(1000, 0);
-            const workbook = new ExcelJS.Workbook();
+            const transactions = await storage_1.storage.getTransactions(1000, 0);
+            const workbook = new exceljs_1.default.Workbook();
             const worksheet = workbook.addWorksheet('Transactions');
             worksheet.columns = [
                 { header: 'Date & Time', key: 'createdAt', width: 20 },
@@ -574,12 +581,12 @@ export async function registerRoutes(app, io) {
     app.post("/api/grouped-expenditures", (req, res) => {
         (async () => {
             try {
-                const validatedData = insertGroupedExpenditureSchema.parse(req.body);
-                const groupedExpenditure = await storage.createGroupedExpenditure(validatedData);
+                const validatedData = schema_1.insertGroupedExpenditureSchema.parse(req.body);
+                const groupedExpenditure = await storage_1.storage.createGroupedExpenditure(validatedData);
                 res.json(groupedExpenditure);
             }
             catch (error) {
-                if (error instanceof z.ZodError) {
+                if (error instanceof zod_1.z.ZodError) {
                     res.status(400).json({ message: "Validation error", errors: error.errors });
                 }
                 else {
@@ -595,7 +602,7 @@ export async function registerRoutes(app, io) {
             try {
                 const limit = parseInt(req.query.limit) || 50;
                 const offset = parseInt(req.query.offset) || 0;
-                const groupedExpenditures = await storage.getGroupedExpenditures(limit, offset);
+                const groupedExpenditures = await storage_1.storage.getGroupedExpenditures(limit, offset);
                 res.json(groupedExpenditures);
             }
             catch (error) {
@@ -609,7 +616,7 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const id = parseInt(req.params.id);
-                const groupedExpenditure = await storage.getGroupedExpenditure(id);
+                const groupedExpenditure = await storage_1.storage.getGroupedExpenditure(id);
                 if (!groupedExpenditure) {
                     return res.status(404).json({ message: "Grouped expenditure not found" });
                 }
@@ -626,15 +633,15 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const id = parseInt(req.params.id);
-                const validatedData = insertGroupedExpenditureSchema.partial().parse(req.body);
-                const groupedExpenditure = await storage.updateGroupedExpenditure(id, validatedData);
+                const validatedData = schema_1.insertGroupedExpenditureSchema.partial().parse(req.body);
+                const groupedExpenditure = await storage_1.storage.updateGroupedExpenditure(id, validatedData);
                 if (!groupedExpenditure) {
                     return res.status(404).json({ message: "Grouped expenditure not found" });
                 }
                 res.json(groupedExpenditure);
             }
             catch (error) {
-                if (error instanceof z.ZodError) {
+                if (error instanceof zod_1.z.ZodError) {
                     res.status(400).json({ message: "Validation error", errors: error.errors });
                 }
                 else {
@@ -649,7 +656,7 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const id = parseInt(req.params.id);
-                const success = await storage.deleteGroupedExpenditure(id);
+                const success = await storage_1.storage.deleteGroupedExpenditure(id);
                 if (!success) {
                     return res.status(404).json({ message: "Grouped expenditure not found" });
                 }
@@ -665,12 +672,12 @@ export async function registerRoutes(app, io) {
     app.post("/api/grouped-expenditure-payments", (req, res) => {
         (async () => {
             try {
-                const validatedData = insertGroupedExpenditurePaymentSchema.parse(req.body);
-                const payment = await storage.createGroupedExpenditurePayment(validatedData);
+                const validatedData = schema_1.insertGroupedExpenditurePaymentSchema.parse(req.body);
+                const payment = await storage_1.storage.createGroupedExpenditurePayment(validatedData);
                 res.json(payment);
             }
             catch (error) {
-                if (error instanceof z.ZodError) {
+                if (error instanceof zod_1.z.ZodError) {
                     res.status(400).json({ message: "Validation error", errors: error.errors });
                 }
                 else {
@@ -685,7 +692,7 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const groupedExpenditureId = parseInt(req.params.groupedExpenditureId);
-                const payments = await storage.getGroupedExpenditurePayments(groupedExpenditureId);
+                const payments = await storage_1.storage.getGroupedExpenditurePayments(groupedExpenditureId);
                 res.json(payments);
             }
             catch (error) {
@@ -699,7 +706,7 @@ export async function registerRoutes(app, io) {
         (async () => {
             try {
                 const id = parseInt(req.params.id);
-                const success = await storage.deleteGroupedExpenditurePayment(id);
+                const success = await storage_1.storage.deleteGroupedExpenditurePayment(id);
                 if (!success) {
                     return res.status(404).json({ message: "Payment not found" });
                 }
@@ -715,7 +722,7 @@ export async function registerRoutes(app, io) {
     app.get("/api/grouped-expenditures/summary", (req, res) => {
         (async () => {
             try {
-                const summary = await storage.getGroupedExpenditures(50, 0);
+                const summary = await storage_1.storage.getGroupedExpenditures(50, 0);
                 res.json(summary);
             }
             catch (error) {
@@ -734,7 +741,42 @@ export async function registerRoutes(app, io) {
     app.post('/api/transactions/clear', (req, res) => {
         res.status(501).json({ success: false, message: 'Not implemented.' });
     });
-    const httpServer = createServer(app);
+    app.post('/api/send-sms', (req, res) => {
+        (async () => {
+            const { phone, message } = req.body;
+            if (!phone || !message) {
+                return res.status(400).json({ success: false, error: 'Missing phone or message' });
+            }
+            try {
+                const apiKey = process.env.FAST2SMS_API_KEY;
+                if (!apiKey) {
+                    return res.status(500).json({ success: false, error: 'SMS API key not configured' });
+                }
+                const fast2smsUrl = 'https://www.fast2sms.com/dev/bulkV2';
+                const payload = {
+                    route: 'q',
+                    numbers: phone,
+                    message: message,
+                    language: 'english',
+                    flash: 0
+                };
+                const response = await axios_1.default.post(fast2smsUrl, payload, {
+                    headers: {
+                        'authorization': apiKey,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                res.json({ success: true, data: response.data });
+            }
+            catch (error) {
+                const errMsg = error.response?.data || error.message || 'Failed to send SMS';
+                res.status(500).json({ success: false, error: errMsg });
+            }
+        })().catch(error => {
+            res.status(500).json({ success: false, error: 'Failed to send SMS' });
+        });
+    });
+    const httpServer = (0, http_1.createServer)(app);
     return httpServer;
 }
 //# sourceMappingURL=routes.js.map

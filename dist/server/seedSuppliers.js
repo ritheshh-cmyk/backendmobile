@@ -1,7 +1,9 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-import { suppliers } from '../shared/schema';
-import { sql } from 'drizzle-orm';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const node_postgres_1 = require("drizzle-orm/node-postgres");
+const pg_1 = require("pg");
+const schema_1 = require("../shared/schema");
+const drizzle_orm_1 = require("drizzle-orm");
 const defaultSuppliers = [
     { name: 'Patel' },
     { name: 'Mahalaxmi' },
@@ -11,13 +13,13 @@ const defaultSuppliers = [
     { name: 'Hub' },
 ];
 async function seedSuppliers() {
-    const client = new Client({ connectionString: process.env.DATABASE_URL });
+    const client = new pg_1.Client({ connectionString: process.env.DATABASE_URL });
     await client.connect();
-    const db = drizzle(client);
+    const db = (0, node_postgres_1.drizzle)(client);
     for (const supplier of defaultSuppliers) {
-        const existing = await db.select().from(suppliers).where(sql `name = ${supplier.name}`);
+        const existing = await db.select().from(schema_1.suppliers).where((0, drizzle_orm_1.sql) `name = ${supplier.name}`);
         if (existing.length === 0) {
-            await db.insert(suppliers).values(supplier);
+            await db.insert(schema_1.suppliers).values(supplier);
             console.log(`Inserted supplier: ${supplier.name}`);
         }
         else {

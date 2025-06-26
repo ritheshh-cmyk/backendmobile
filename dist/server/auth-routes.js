@@ -1,15 +1,20 @@
-import express from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { storage } from './storage.js';
-const router = express.Router();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const storage_1 = require("./storage");
+const router = express_1.default.Router();
 router.post('/login', (req, res) => {
     (async () => {
         const { username, password } = req.body;
         if (!username || !password) {
             return res.status(400).json({ error: 'Username and password are required' });
         }
-        const user = await storage.getUserByUsername(username);
+        const user = await storage_1.storage.getUserByUsername(username);
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -19,7 +24,7 @@ router.post('/login', (req, res) => {
         }
         else {
             try {
-                isValidPassword = await bcrypt.compare(password, user.password);
+                isValidPassword = await bcryptjs_1.default.compare(password, user.password);
             }
             catch (error) {
                 console.error('Bcrypt comparison error:', error);
@@ -29,7 +34,7 @@ router.post('/login', (req, res) => {
         if (!isValidPassword) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
+        const token = jsonwebtoken_1.default.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
         res.json({
             message: 'Login successful',
             token,
@@ -49,12 +54,12 @@ router.post('/register', (req, res) => {
         if (!username || !password) {
             return res.status(400).json({ error: 'Username and password are required' });
         }
-        const existingUser = await storage.getUserByUsername(username);
+        const existingUser = await storage_1.storage.getUserByUsername(username);
         if (existingUser) {
             return res.status(409).json({ error: 'Username already exists' });
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await storage.createUser({ username, password: hashedPassword });
+        const hashedPassword = await bcryptjs_1.default.hash(password, 10);
+        const newUser = await storage_1.storage.createUser({ username, password: hashedPassword });
         res.status(201).json({
             message: 'User created successfully',
             user: {
@@ -67,5 +72,5 @@ router.post('/register', (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     });
 });
-export default router;
+exports.default = router;
 //# sourceMappingURL=auth-routes.js.map

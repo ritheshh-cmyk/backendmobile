@@ -1,6 +1,43 @@
-import { neon } from '@neondatabase/serverless';
-const sql = neon(process.env.DATABASE_URL);
-export const createTables = async () => {
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sql = exports.initializeDatabase = exports.createTables = void 0;
+const serverless_1 = require("@neondatabase/serverless");
+const sql = (0, serverless_1.neon)(process.env.DATABASE_URL);
+exports.sql = sql;
+const createTables = async () => {
     await sql `
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -81,7 +118,7 @@ export const createTables = async () => {
     SELECT id FROM users WHERE username = 'admin' LIMIT 1
   `;
     if (adminExists.length === 0) {
-        const bcrypt = await import('bcryptjs');
+        const bcrypt = await Promise.resolve().then(() => __importStar(require('bcryptjs')));
         const hashedPassword = await bcrypt.hash('admin123', 10);
         await sql `
       INSERT INTO users (username, password_hash, role)
@@ -89,9 +126,10 @@ export const createTables = async () => {
     `;
     }
 };
-export const initializeDatabase = async () => {
+exports.createTables = createTables;
+const initializeDatabase = async () => {
     try {
-        await createTables();
+        await (0, exports.createTables)();
         console.log('✅ Database initialized successfully');
     }
     catch (error) {
@@ -99,5 +137,5 @@ export const initializeDatabase = async () => {
         throw error;
     }
 };
-export { sql };
+exports.initializeDatabase = initializeDatabase;
 //# sourceMappingURL=database.js.map
