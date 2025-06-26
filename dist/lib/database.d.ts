@@ -1,4 +1,4 @@
-declare const sql: import("@neondatabase/serverless").NeonQueryFunction<false, false>;
+declare let sql: any;
 export declare const createTables: () => Promise<void>;
 export declare const initializeDatabase: () => Promise<void>;
 export { sql };

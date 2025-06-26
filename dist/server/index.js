@@ -3,7 +3,6 @@ import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { registerRoutes } from './routes.js';
-import { initializeDatabase } from '../lib/database.js';
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -19,7 +18,6 @@ app.get('/health', (req, res) => {
 });
 const startServer = async () => {
     try {
-        await initializeDatabase();
         await registerRoutes(app, io);
         io.on('connection', (socket) => {
             console.log('Client connected:', socket.id);
