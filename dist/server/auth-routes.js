@@ -1,4 +1,5 @@
 import express from 'express';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { storage } from './storage.js';
 const router = express.Router();
@@ -12,7 +13,20 @@ router.post('/login', (req, res) => {
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        if (user.password !== password) {
+        let isValidPassword = false;
+        if (user.password === password) {
+            isValidPassword = true;
+        }
+        else {
+            try {
+                isValidPassword = await bcrypt.compare(password, user.password);
+            }
+            catch (error) {
+                console.error('Bcrypt comparison error:', error);
+                isValidPassword = false;
+            }
+        }
+        if (!isValidPassword) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
         const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
@@ -39,7 +53,8 @@ router.post('/register', (req, res) => {
         if (existingUser) {
             return res.status(409).json({ error: 'Username already exists' });
         }
-        const newUser = await storage.createUser({ username, password });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await storage.createUser({ username, password: hashedPassword });
         res.status(201).json({
             message: 'User created successfully',
             user: {
