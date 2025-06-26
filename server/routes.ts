@@ -813,35 +813,39 @@ export async function registerRoutes(app: Express, io: SocketIOServer): Promise<
   });
 
   // --- SMS Sending Endpoint ---
-  app.post('/api/send-sms', async (req, res) => {
-    const { phone, message } = req.body;
-    if (!phone || !message) {
-      return res.status(400).json({ success: false, error: 'Missing phone or message' });
-    }
-    try {
-      const apiKey = process.env.FAST2SMS_API_KEY;
-      if (!apiKey) {
-        return res.status(500).json({ success: false, error: 'SMS API key not configured' });
+  app.post('/api/send-sms', (req, res) => {
+    (async () => {
+      const { phone, message } = req.body;
+      if (!phone || !message) {
+        return res.status(400).json({ success: false, error: 'Missing phone or message' });
       }
-      const fast2smsUrl = 'https://www.fast2sms.com/dev/bulkV2';
-      const payload = {
-        route: 'q',
-        numbers: phone,
-        message: message,
-        language: 'english',
-        flash: 0
-      };
-      const response = await axios.post(fast2smsUrl, payload, {
-        headers: {
-          'authorization': apiKey,
-          'Content-Type': 'application/json'
+      try {
+        const apiKey = process.env.FAST2SMS_API_KEY;
+        if (!apiKey) {
+          return res.status(500).json({ success: false, error: 'SMS API key not configured' });
         }
-      });
-      res.json({ success: true, data: response.data });
-    } catch (error) {
-      const errMsg = error.response?.data || error.message || 'Failed to send SMS';
-      res.status(500).json({ success: false, error: errMsg });
-    }
+        const fast2smsUrl = 'https://www.fast2sms.com/dev/bulkV2';
+        const payload = {
+          route: 'q',
+          numbers: phone,
+          message: message,
+          language: 'english',
+          flash: 0
+        };
+        const response = await axios.post(fast2smsUrl, payload, {
+          headers: {
+            'authorization': apiKey,
+            'Content-Type': 'application/json'
+          }
+        });
+        res.json({ success: true, data: response.data });
+      } catch (error: any) {
+        const errMsg = error.response?.data || error.message || 'Failed to send SMS';
+        res.status(500).json({ success: false, error: errMsg });
+      }
+    })().catch(error => {
+      res.status(500).json({ success: false, error: 'Failed to send SMS' });
+    });
   });
 
   const httpServer = createServer(app);
