@@ -1,8 +1,8 @@
 import type { Express, RequestHandler } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage.js";
+import { storage } from "./storage";
 import type { Server as SocketIOServer } from "socket.io";
-import authRoutes from "./auth-routes.js";
+import authRoutes from "./auth-routes";
 import { 
   insertTransactionSchema, 
   insertInventoryItemSchema, 
@@ -11,9 +11,10 @@ import {
   insertExpenditureSchema,
   insertGroupedExpenditureSchema,
   insertGroupedExpenditurePaymentSchema
-} from "../shared/schema.js";
+} from "../shared/schema";
 import { z } from "zod";
 import ExcelJS from "exceljs";
+import axios from 'axios';
 
 export async function registerRoutes(app: Express, io: SocketIOServer): Promise<Server> {
   // Auth routes
@@ -809,6 +810,38 @@ export async function registerRoutes(app: Express, io: SocketIOServer): Promise<
 
   app.post('/api/transactions/clear', (req, res) => {
     res.status(501).json({ success: false, message: 'Not implemented.' });
+  });
+
+  // --- SMS Sending Endpoint ---
+  app.post('/api/send-sms', async (req, res) => {
+    const { phone, message } = req.body;
+    if (!phone || !message) {
+      return res.status(400).json({ success: false, error: 'Missing phone or message' });
+    }
+    try {
+      const apiKey = process.env.FAST2SMS_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ success: false, error: 'SMS API key not configured' });
+      }
+      const fast2smsUrl = 'https://www.fast2sms.com/dev/bulkV2';
+      const payload = {
+        route: 'q',
+        numbers: phone,
+        message: message,
+        language: 'english',
+        flash: 0
+      };
+      const response = await axios.post(fast2smsUrl, payload, {
+        headers: {
+          'authorization': apiKey,
+          'Content-Type': 'application/json'
+        }
+      });
+      res.json({ success: true, data: response.data });
+    } catch (error) {
+      const errMsg = error.response?.data || error.message || 'Failed to send SMS';
+      res.status(500).json({ success: false, error: errMsg });
+    }
   });
 
   const httpServer = createServer(app);
