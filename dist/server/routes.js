@@ -776,6 +776,123 @@ async function registerRoutes(app, io) {
             res.status(500).json({ success: false, error: 'Failed to send SMS' });
         });
     });
+    app.get('/api/backup', (req, res) => {
+        (async () => {
+            try {
+                const shop_id = req.query.shop_id;
+                if (!shop_id)
+                    return res.status(400).json({ error: 'shop_id required' });
+                const data = await storage_1.storage.backupShopData(shop_id);
+                res.json(data);
+            }
+            catch (e) {
+                res.status(500).json({ error: 'Backup failed' });
+            }
+        })().catch(error => {
+            res.status(500).json({ error: 'Backup failed' });
+        });
+    });
+    app.post('/api/restore', (req, res) => {
+        (async () => {
+            try {
+                const shop_id = req.body.shop_id;
+                const data = req.body.data;
+                if (!shop_id || !data)
+                    return res.status(400).json({ error: 'shop_id and data required' });
+                await storage_1.storage.restoreShopData(shop_id, data);
+                res.json({ success: true });
+            }
+            catch (e) {
+                res.status(500).json({ error: 'Restore failed' });
+            }
+        })().catch(error => {
+            res.status(500).json({ error: 'Restore failed' });
+        });
+    });
+    app.get('/api/transactions/range', (req, res) => {
+        (async () => {
+            try {
+                const shop_id = req.query.shop_id;
+                const start = req.query.start;
+                const end = req.query.end;
+                if (!shop_id || !start || !end)
+                    return res.status(400).json({ error: 'shop_id, start, end required' });
+                const tx = await storage_1.storage.getTransactionsByDateRangeForShop(shop_id, new Date(start), new Date(end));
+                res.json(tx);
+            }
+            catch (e) {
+                res.status(500).json({ error: 'Failed to fetch transactions' });
+            }
+        })().catch(error => {
+            res.status(500).json({ error: 'Failed to fetch transactions' });
+        });
+    });
+    app.get('/api/bills/range', (req, res) => {
+        (async () => {
+            try {
+                const shop_id = req.query.shop_id;
+                const start = req.query.start;
+                const end = req.query.end;
+                if (!shop_id || !start || !end)
+                    return res.status(400).json({ error: 'shop_id, start, end required' });
+                const bills = await storage_1.storage.getBillsByDateRangeForShop(shop_id, new Date(start), new Date(end));
+                res.json(bills);
+            }
+            catch (e) {
+                res.status(500).json({ error: 'Failed to fetch bills' });
+            }
+        })().catch(error => {
+            res.status(500).json({ error: 'Failed to fetch bills' });
+        });
+    });
+    app.get('/api/expenditures/range', (req, res) => {
+        (async () => {
+            try {
+                const shop_id = req.query.shop_id;
+                const start = req.query.start;
+                const end = req.query.end;
+                if (!shop_id || !start || !end)
+                    return res.status(400).json({ error: 'shop_id, start, end required' });
+                const exps = await storage_1.storage.getExpendituresByDateRangeForShop(shop_id, new Date(start), new Date(end));
+                res.json(exps);
+            }
+            catch (e) {
+                res.status(500).json({ error: 'Failed to fetch expenditures' });
+            }
+        })().catch(error => {
+            res.status(500).json({ error: 'Failed to fetch expenditures' });
+        });
+    });
+    app.post('/api/feedback', (req, res) => {
+        (async () => {
+            try {
+                const { billId, feedback } = req.body;
+                if (!billId || !feedback)
+                    return res.status(400).json({ error: 'billId and feedback required' });
+                await storage_1.storage.saveFeedback(billId, feedback);
+                res.json({ success: true });
+            }
+            catch (e) {
+                res.status(500).json({ error: 'Failed to save feedback' });
+            }
+        })().catch(error => {
+            res.status(500).json({ error: 'Failed to save feedback' });
+        });
+    });
+    app.get('/api/feedback/:billId', (req, res) => {
+        (async () => {
+            try {
+                const billId = req.params.billId;
+                const feedback = await storage_1.storage.getFeedback(billId);
+                res.json({ feedback });
+            }
+            catch (e) {
+                res.status(500).json({ error: 'Failed to fetch feedback' });
+            }
+        })().catch(error => {
+            res.status(500).json({ error: 'Failed to fetch feedback' });
+        });
+    });
     const httpServer = (0, http_1.createServer)(app);
     return httpServer;
 }

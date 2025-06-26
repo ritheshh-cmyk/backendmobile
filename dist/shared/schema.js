@@ -7,6 +7,7 @@ exports.users = (0, pg_core_1.pgTable)("users", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
     username: (0, pg_core_1.text)("username").notNull().unique(),
     password: (0, pg_core_1.text)("password").notNull(),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
 });
 exports.transactions = (0, pg_core_1.pgTable)("transactions", {
     id: (0, pg_core_1.serial)("id").primaryKey(),
@@ -32,6 +33,7 @@ exports.transactions = (0, pg_core_1.pgTable)("transactions", {
     partsCost: (0, pg_core_1.decimal)("parts_cost", { precision: 10, scale: 2 }),
     customSupplierName: (0, pg_core_1.text)("custom_supplier_name"),
     externalPurchases: (0, pg_core_1.text)("external_purchases"),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 exports.inventoryItems = (0, pg_core_1.pgTable)("inventory_items", {
@@ -43,6 +45,7 @@ exports.inventoryItems = (0, pg_core_1.pgTable)("inventory_items", {
     sellingPrice: (0, pg_core_1.decimal)("selling_price", { precision: 10, scale: 2 }).notNull(),
     quantity: (0, pg_core_1.serial)("quantity").notNull(),
     supplier: (0, pg_core_1.text)("supplier").notNull(),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 exports.suppliers = (0, pg_core_1.pgTable)("suppliers", {
@@ -50,6 +53,7 @@ exports.suppliers = (0, pg_core_1.pgTable)("suppliers", {
     name: (0, pg_core_1.text)("name").notNull(),
     contactNumber: (0, pg_core_1.varchar)("contact_number", { length: 20 }),
     address: (0, pg_core_1.text)("address"),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 exports.purchaseOrders = (0, pg_core_1.pgTable)("purchase_orders", {
@@ -60,6 +64,7 @@ exports.purchaseOrders = (0, pg_core_1.pgTable)("purchase_orders", {
     unitCost: (0, pg_core_1.decimal)("unit_cost", { precision: 10, scale: 2 }).notNull(),
     totalCost: (0, pg_core_1.decimal)("total_cost", { precision: 10, scale: 2 }).notNull(),
     status: (0, pg_core_1.text)("status").notNull().default("pending"),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
     orderDate: (0, pg_core_1.timestamp)("order_date").defaultNow().notNull(),
     receivedDate: (0, pg_core_1.timestamp)("received_date"),
 });
@@ -69,6 +74,7 @@ exports.supplierPayments = (0, pg_core_1.pgTable)("supplier_payments", {
     amount: (0, pg_core_1.decimal)("amount", { precision: 10, scale: 2 }).notNull(),
     paymentMethod: (0, pg_core_1.text)("payment_method").notNull(),
     description: (0, pg_core_1.text)("description"),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
     paymentDate: (0, pg_core_1.timestamp)("payment_date").defaultNow().notNull(),
 });
 exports.expenditures = (0, pg_core_1.pgTable)("expenditures", {
@@ -81,6 +87,7 @@ exports.expenditures = (0, pg_core_1.pgTable)("expenditures", {
     items: (0, pg_core_1.text)("items"),
     paidAmount: (0, pg_core_1.decimal)("paid_amount", { precision: 10, scale: 2 }).default("0").notNull(),
     remainingAmount: (0, pg_core_1.decimal)("remaining_amount", { precision: 10, scale: 2 }).default("0").notNull(),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 exports.groupedExpenditures = (0, pg_core_1.pgTable)("grouped_expenditures", {
@@ -92,6 +99,7 @@ exports.groupedExpenditures = (0, pg_core_1.pgTable)("grouped_expenditures", {
     periodEnd: (0, pg_core_1.timestamp)("period_end").notNull(),
     description: (0, pg_core_1.text)("description"),
     status: (0, pg_core_1.text)("status").notNull().default("pending"),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 exports.groupedExpenditurePayments = (0, pg_core_1.pgTable)("grouped_expenditure_payments", {
@@ -101,6 +109,7 @@ exports.groupedExpenditurePayments = (0, pg_core_1.pgTable)("grouped_expenditure
     paymentMethod: (0, pg_core_1.text)("payment_method").notNull(),
     paymentDate: (0, pg_core_1.timestamp)("payment_date").defaultNow().notNull(),
     description: (0, pg_core_1.text)("description"),
+    shop_id: (0, pg_core_1.text)("shop_id").default("default"),
     createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
 });
 const externalPurchaseSchema = zod_1.z.object({
@@ -132,6 +141,7 @@ exports.insertTransactionSchema = zod_1.z.object({
     supplierName: zod_1.z.string().optional(),
     partsCost: zod_1.z.string().optional(),
     customSupplierName: zod_1.z.string().optional(),
+    shop_id: zod_1.z.string().optional(),
 });
 exports.insertInventoryItemSchema = zod_1.z.object({
     partName: zod_1.z.string().min(1, "Part name is required"),
@@ -141,11 +151,13 @@ exports.insertInventoryItemSchema = zod_1.z.object({
     sellingPrice: zod_1.z.coerce.number().min(0),
     quantity: zod_1.z.coerce.number().min(0),
     supplier: zod_1.z.string().min(1, "Supplier is required"),
+    shop_id: zod_1.z.string().optional(),
 });
 exports.insertSupplierSchema = zod_1.z.object({
     name: zod_1.z.string().min(1, "Supplier name is required"),
     contactNumber: zod_1.z.string().optional(),
     address: zod_1.z.string().optional(),
+    shop_id: zod_1.z.string().optional(),
 });
 exports.insertPurchaseOrderSchema = zod_1.z.object({
     supplierId: zod_1.z.coerce.number().min(1),
@@ -154,12 +166,14 @@ exports.insertPurchaseOrderSchema = zod_1.z.object({
     unitCost: zod_1.z.coerce.number().min(0),
     totalCost: zod_1.z.coerce.number().min(0),
     status: zod_1.z.string().optional(),
+    shop_id: zod_1.z.string().optional(),
 });
 exports.insertSupplierPaymentSchema = zod_1.z.object({
     supplierId: zod_1.z.coerce.number().min(1),
     amount: zod_1.z.coerce.number().min(0),
     paymentMethod: zod_1.z.string().min(1, "Payment method is required"),
     description: zod_1.z.string().optional(),
+    shop_id: zod_1.z.string().optional(),
 });
 exports.insertExpenditureSchema = zod_1.z.object({
     description: zod_1.z.string().min(1, "Description is required"),
@@ -170,6 +184,7 @@ exports.insertExpenditureSchema = zod_1.z.object({
     items: zod_1.z.string().optional(),
     paidAmount: zod_1.z.coerce.number().min(0).optional(),
     remainingAmount: zod_1.z.coerce.number().min(0).optional(),
+    shop_id: zod_1.z.string().optional(),
 });
 exports.insertGroupedExpenditureSchema = zod_1.z.object({
     providerName: zod_1.z.string().min(1, "Provider name is required"),
@@ -179,17 +194,20 @@ exports.insertGroupedExpenditureSchema = zod_1.z.object({
     periodEnd: zod_1.z.coerce.date(),
     description: zod_1.z.string().optional(),
     status: zod_1.z.string().optional(),
+    shop_id: zod_1.z.string().optional(),
 });
 exports.insertGroupedExpenditurePaymentSchema = zod_1.z.object({
     groupedExpenditureId: zod_1.z.coerce.number().min(1),
     amount: zod_1.z.coerce.number().min(0),
     paymentMethod: zod_1.z.string().min(1, "Payment method is required"),
     description: zod_1.z.string().optional(),
+    shop_id: zod_1.z.string().optional(),
 });
 exports.insertUserSchema = zod_1.z.object({
     username: zod_1.z.string().min(1, "Username is required"),
     password: zod_1.z.string().min(1, "Password is required"),
     role: zod_1.z.string().min(1).optional(),
     permanent: zod_1.z.boolean().optional(),
+    shop_id: zod_1.z.string().optional(),
 });
 //# sourceMappingURL=schema.js.map

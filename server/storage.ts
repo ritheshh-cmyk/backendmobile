@@ -31,6 +31,7 @@ class MemStorage {
   private expenditures: Expenditure[] = [];
   private groupedExpenditures: GroupedExpenditure[] = [];
   private groupedExpenditurePayments: GroupedExpenditurePayment[] = [];
+  private bills: any[] = [];
   private feedbacks: { [billId: string]: string } = {};
 
   // User methods
@@ -43,15 +44,12 @@ class MemStorage {
   }
 
   async createUser(data: InsertUser): Promise<User> {
-    const id = this.users.length + 1;
     const user: User = {
-      id,
-      username: data.username!,
-      role: (data.role as any) || 'user',
-      permanent: data.permanent ?? false,
-      password: data.password!,
-      createdAt: new Date().toISOString(),
-    } as any;
+      id: this.users.length + 1,
+      username: data.username,
+      password: data.password,
+      shop_id: data.shop_id || null,
+    };
     this.users.push(user);
     return user;
   }
@@ -64,24 +62,25 @@ class MemStorage {
       mobileNumber: data.mobileNumber,
       deviceModel: data.deviceModel,
       repairType: data.repairType,
-      repairCost: data.repairCost?.toString() ?? "0",
-      actualCost: data.actualCost?.toString() ?? null,
-      profit: data.profit?.toString() ?? null,
-      amountGiven: data.amountGiven?.toString() ?? "0",
-      changeReturned: data.changeReturned?.toString() ?? "0",
+      repairCost: data.repairCost.toString(),
+      actualCost: data.actualCost?.toString() || null,
+      profit: data.profit?.toString() || null,
+      amountGiven: data.amountGiven.toString(),
+      changeReturned: data.changeReturned.toString(),
       paymentMethod: data.paymentMethod,
       externalStoreName: data.externalStoreName || null,
       externalItemName: data.externalItemName || null,
       externalItemCost: data.externalItemCost?.toString() || null,
       internalCost: data.internalCost?.toString() || null,
-      freeGlassInstallation: data.freeGlassInstallation ?? false,
+      freeGlassInstallation: data.freeGlassInstallation || false,
       remarks: data.remarks || null,
-      status: data.status || "completed",
-      requiresInventory: data.requiresInventory ?? false,
+      status: data.status || "Pending",
+      requiresInventory: data.requiresInventory || false,
       supplierName: data.supplierName || null,
       partsCost: data.partsCost || null,
       customSupplierName: data.customSupplierName || null,
       externalPurchases: data.externalPurchases ? JSON.stringify(data.externalPurchases) : null,
+      shop_id: data.shop_id || null,
       createdAt: new Date()
     };
     this.transactions.push(transaction);
@@ -99,10 +98,13 @@ class MemStorage {
   async updateTransaction(id: number, data: Partial<InsertTransaction>): Promise<Transaction | null> {
     const index = this.transactions.findIndex(t => t.id === id);
     if (index === -1) return null;
+    
     const transaction = this.transactions[index];
     const updated: Transaction = {
       ...transaction,
-      ...Object.fromEntries(Object.entries(data).map(([k, v]) => [k, typeof v === 'number' ? v.toString() : v]))
+      ...data,
+      createdAt: transaction.createdAt,
+      id: transaction.id
     };
     this.transactions[index] = updated;
     return updated;
@@ -125,21 +127,27 @@ class MemStorage {
   }
 
   async getTransactionsByDateRange(startDate: Date, endDate: Date): Promise<Transaction[]> {
-    return this.transactions.filter(t => 
-      t.createdAt >= startDate && t.createdAt <= endDate
-    );
+    return this.transactions.filter(t => {
+      const createdAt = new Date(t.createdAt);
+      return createdAt >= startDate && createdAt <= endDate;
+    });
   }
 
   // Stats methods
-  async getTodayStats(): Promise<any> {
+  async getTodayStats(shop_id?: string): Promise<any> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const todayTransactions = this.transactions.filter(t => 
-      t.createdAt >= today && t.createdAt < tomorrow
-    );
+    const todayTransactions = this.transactions.filter(t => {
+      const createdAt = new Date(t.createdAt);
+      const matchesDate = createdAt >= today && createdAt < tomorrow;
+      if (shop_id) {
+        return matchesDate && t.shop_id === shop_id;
+      }
+      return matchesDate;
+    });
     
     return {
       totalTransactions: todayTransactions.length,
@@ -152,7 +160,10 @@ class MemStorage {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     
-    const weekTransactions = this.transactions.filter(t => t.createdAt >= weekAgo);
+    const weekTransactions = this.transactions.filter(t => {
+      const createdAt = new Date(t.createdAt);
+      return createdAt >= weekAgo;
+    });
     
     return {
       totalTransactions: weekTransactions.length,
@@ -165,7 +176,10 @@ class MemStorage {
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
     
-    const monthTransactions = this.transactions.filter(t => t.createdAt >= monthAgo);
+    const monthTransactions = this.transactions.filter(t => {
+      const createdAt = new Date(t.createdAt);
+      return createdAt >= monthAgo;
+    });
     
     return {
       totalTransactions: monthTransactions.length,
@@ -178,7 +192,10 @@ class MemStorage {
     const yearAgo = new Date();
     yearAgo.setFullYear(yearAgo.getFullYear() - 1);
     
-    const yearTransactions = this.transactions.filter(t => t.createdAt >= yearAgo);
+    const yearTransactions = this.transactions.filter(t => {
+      const createdAt = new Date(t.createdAt);
+      return createdAt >= yearAgo;
+    });
     
     return {
       totalTransactions: yearTransactions.length,
@@ -198,6 +215,7 @@ class MemStorage {
       sellingPrice: data.sellingPrice.toString(),
       quantity: data.quantity,
       supplier: data.supplier,
+      shop_id: data.shop_id || null,
       createdAt: new Date()
     };
     this.inventoryItems.push(item);
@@ -455,32 +473,6 @@ class MemStorage {
   // Get feedback for a bill
   async getFeedback(billId: string): Promise<string | null> {
     return this.feedbacks[billId] || null;
-  }
-  // Today's stats for a shop
-  async getTodayStats(shop_id: string): Promise<any> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const todayTransactions = this.transactions.filter(t => t.shop_id === shop_id && t.createdAt >= today && t.createdAt < tomorrow);
-    return {
-      totalTransactions: todayTransactions.length,
-      totalRevenue: todayTransactions.reduce((sum, t) => sum + parseFloat(t.repairCost), 0),
-      totalProfit: todayTransactions.reduce((sum, t) => sum + (parseFloat(t.profit || '0')), 0)
-    };
-  }
-  // Yesterday's stats for a shop
-  async getYesterdayStats(shop_id: string): Promise<any> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const yesterdayTransactions = this.transactions.filter(t => t.shop_id === shop_id && t.createdAt >= yesterday && t.createdAt < today);
-    return {
-      totalTransactions: yesterdayTransactions.length,
-      totalRevenue: yesterdayTransactions.reduce((sum, t) => sum + parseFloat(t.repairCost), 0),
-      totalProfit: yesterdayTransactions.reduce((sum, t) => sum + (parseFloat(t.profit || '0')), 0)
-    };
   }
 }
 

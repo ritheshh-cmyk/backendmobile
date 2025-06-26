@@ -9,6 +9,8 @@ declare class MemStorage {
     private expenditures;
     private groupedExpenditures;
     private groupedExpenditurePayments;
+    private bills;
+    private feedbacks;
     getUserByUsername(username: string): Promise<User | null>;
     getUserById(id: number): Promise<User | null>;
     createUser(data: InsertUser): Promise<User>;
@@ -19,7 +21,7 @@ declare class MemStorage {
     deleteTransaction(id: number): Promise<boolean>;
     searchTransactions(search: string): Promise<Transaction[]>;
     getTransactionsByDateRange(startDate: Date, endDate: Date): Promise<Transaction[]>;
-    getTodayStats(): Promise<any>;
+    getTodayStats(shop_id?: string): Promise<any>;
     getWeekStats(): Promise<any>;
     getMonthStats(): Promise<any>;
     getYearStats(): Promise<any>;
@@ -45,6 +47,13 @@ declare class MemStorage {
     getGroupedExpenditurePayments(groupedExpenditureId?: number): Promise<GroupedExpenditurePayment[]>;
     deleteGroupedExpenditurePayment(id: number): Promise<boolean>;
     getSupplierExpenditureSummary(): Promise<any[]>;
+    backupShopData(shop_id: string): Promise<any>;
+    restoreShopData(shop_id: string, data: any): Promise<void>;
+    getTransactionsByDateRangeForShop(shop_id: string, start: Date, end: Date): Promise<Transaction[]>;
+    getBillsByDateRangeForShop(shop_id: string, start: Date, end: Date): Promise<any[]>;
+    getExpendituresByDateRangeForShop(shop_id: string, start: Date, end: Date): Promise<Expenditure[]>;
+    saveFeedback(billId: string, feedback: string): Promise<void>;
+    getFeedback(billId: string): Promise<string | null>;
 }
 export declare const storage: MemStorage;
 export {};

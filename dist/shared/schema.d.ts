@@ -54,6 +54,23 @@ export declare const users: import("drizzle-orm/pg-core").PgTableWithColumns<{
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "users";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
     };
     dialect: "pg";
 }>;
@@ -452,6 +469,23 @@ export declare const transactions: import("drizzle-orm/pg-core").PgTableWithColu
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "transactions";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "transactions";
@@ -612,6 +646,23 @@ export declare const inventoryItems: import("drizzle-orm/pg-core").PgTableWithCo
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "inventory_items";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "inventory_items";
@@ -698,6 +749,23 @@ export declare const suppliers: import("drizzle-orm/pg-core").PgTableWithColumns
             driverParam: string;
             notNull: false;
             hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "suppliers";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -849,6 +917,23 @@ export declare const purchaseOrders: import("drizzle-orm/pg-core").PgTableWithCo
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "purchase_orders";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         orderDate: import("drizzle-orm/pg-core").PgColumn<{
             name: "order_date";
             tableName: "purchase_orders";
@@ -967,6 +1052,23 @@ export declare const supplierPayments: import("drizzle-orm/pg-core").PgTableWith
             driverParam: string;
             notNull: false;
             hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "supplier_payments";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -1152,6 +1254,23 @@ export declare const expenditures: import("drizzle-orm/pg-core").PgTableWithColu
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "expenditures";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "expenditures";
@@ -1312,6 +1431,23 @@ export declare const groupedExpenditures: import("drizzle-orm/pg-core").PgTableW
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "grouped_expenditures";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "grouped_expenditures";
@@ -1438,6 +1574,23 @@ export declare const groupedExpenditurePayments: import("drizzle-orm/pg-core").P
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        shop_id: import("drizzle-orm/pg-core").PgColumn<{
+            name: "shop_id";
+            tableName: "grouped_expenditure_payments";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "grouped_expenditure_payments";
@@ -1496,7 +1649,9 @@ export declare const insertTransactionSchema: z.ZodObject<{
     supplierName: z.ZodOptional<z.ZodString>;
     partsCost: z.ZodOptional<z.ZodString>;
     customSupplierName: z.ZodOptional<z.ZodString>;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    shop_id?: string;
     customerName?: string;
     mobileNumber?: string;
     deviceModel?: string;
@@ -1525,6 +1680,7 @@ export declare const insertTransactionSchema: z.ZodObject<{
         customStore?: string;
     }[];
 }, {
+    shop_id?: string;
     customerName?: string;
     mobileNumber?: string;
     deviceModel?: string;
@@ -1561,7 +1717,9 @@ export declare const insertInventoryItemSchema: z.ZodObject<{
     sellingPrice: z.ZodNumber;
     quantity: z.ZodNumber;
     supplier: z.ZodString;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    shop_id?: string;
     partName?: string;
     partType?: string;
     compatibleDevices?: string;
@@ -1570,6 +1728,7 @@ export declare const insertInventoryItemSchema: z.ZodObject<{
     quantity?: number;
     supplier?: string;
 }, {
+    shop_id?: string;
     partName?: string;
     partType?: string;
     compatibleDevices?: string;
@@ -1582,11 +1741,14 @@ export declare const insertSupplierSchema: z.ZodObject<{
     name: z.ZodString;
     contactNumber: z.ZodOptional<z.ZodString>;
     address: z.ZodOptional<z.ZodString>;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    shop_id?: string;
     name?: string;
     contactNumber?: string;
     address?: string;
 }, {
+    shop_id?: string;
     name?: string;
     contactNumber?: string;
     address?: string;
@@ -1598,7 +1760,9 @@ export declare const insertPurchaseOrderSchema: z.ZodObject<{
     unitCost: z.ZodNumber;
     totalCost: z.ZodNumber;
     status: z.ZodOptional<z.ZodString>;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    shop_id?: string;
     status?: string;
     quantity?: number;
     supplierId?: number;
@@ -1606,6 +1770,7 @@ export declare const insertPurchaseOrderSchema: z.ZodObject<{
     unitCost?: number;
     totalCost?: number;
 }, {
+    shop_id?: string;
     status?: string;
     quantity?: number;
     supplierId?: number;
@@ -1618,12 +1783,15 @@ export declare const insertSupplierPaymentSchema: z.ZodObject<{
     amount: z.ZodNumber;
     paymentMethod: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    shop_id?: string;
     paymentMethod?: string;
     supplierId?: number;
     amount?: number;
     description?: string;
 }, {
+    shop_id?: string;
     paymentMethod?: string;
     supplierId?: number;
     amount?: number;
@@ -1638,7 +1806,9 @@ export declare const insertExpenditureSchema: z.ZodObject<{
     items: z.ZodOptional<z.ZodString>;
     paidAmount: z.ZodOptional<z.ZodNumber>;
     remainingAmount: z.ZodOptional<z.ZodNumber>;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    shop_id?: string;
     paymentMethod?: string;
     amount?: number;
     description?: string;
@@ -1648,6 +1818,7 @@ export declare const insertExpenditureSchema: z.ZodObject<{
     paidAmount?: number;
     remainingAmount?: number;
 }, {
+    shop_id?: string;
     paymentMethod?: string;
     amount?: number;
     description?: string;
@@ -1665,7 +1836,9 @@ export declare const insertGroupedExpenditureSchema: z.ZodObject<{
     periodEnd: z.ZodDate;
     description: z.ZodOptional<z.ZodString>;
     status: z.ZodOptional<z.ZodString>;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    shop_id?: string;
     status?: string;
     description?: string;
     category?: string;
@@ -1674,6 +1847,7 @@ export declare const insertGroupedExpenditureSchema: z.ZodObject<{
     periodStart?: Date;
     periodEnd?: Date;
 }, {
+    shop_id?: string;
     status?: string;
     description?: string;
     category?: string;
@@ -1687,12 +1861,15 @@ export declare const insertGroupedExpenditurePaymentSchema: z.ZodObject<{
     amount: z.ZodNumber;
     paymentMethod: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    shop_id?: string;
     paymentMethod?: string;
     amount?: number;
     description?: string;
     groupedExpenditureId?: number;
 }, {
+    shop_id?: string;
     paymentMethod?: string;
     amount?: number;
     description?: string;
@@ -1703,14 +1880,17 @@ export declare const insertUserSchema: z.ZodObject<{
     password: z.ZodString;
     role: z.ZodOptional<z.ZodString>;
     permanent: z.ZodOptional<z.ZodBoolean>;
+    shop_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     username?: string;
     password?: string;
+    shop_id?: string;
     role?: string;
     permanent?: boolean;
 }, {
     username?: string;
     password?: string;
+    shop_id?: string;
     role?: string;
     permanent?: boolean;
 }>;
