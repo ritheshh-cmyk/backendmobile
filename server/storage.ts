@@ -31,6 +31,7 @@ class MemStorage {
   private expenditures: Expenditure[] = [];
   private groupedExpenditures: GroupedExpenditure[] = [];
   private groupedExpenditurePayments: GroupedExpenditurePayment[] = [];
+  private feedbacks: { [billId: string]: string } = {};
 
   // User methods
   async getUserByUsername(username: string): Promise<User | null> {
@@ -401,6 +402,85 @@ class MemStorage {
       });
     }
     return summary;
+  }
+
+  // Backup all shop data
+  async backupShopData(shop_id: string): Promise<any> {
+    return {
+      transactions: this.transactions.filter(t => t.shop_id === shop_id),
+      bills: (this.bills || []).filter(b => b.shop_id === shop_id),
+      expenditures: this.expenditures.filter(e => e.shop_id === shop_id),
+      suppliers: this.suppliers.filter(s => s.shop_id === shop_id),
+      inventoryItems: this.inventoryItems.filter(i => i.shop_id === shop_id),
+      payments: this.supplierPayments.filter(p => p.shop_id === shop_id),
+      groupedExpenditures: this.groupedExpenditures.filter(g => g.shop_id === shop_id),
+      groupedExpenditurePayments: this.groupedExpenditurePayments.filter(gp => gp.shop_id === shop_id),
+      feedbacks: Object.entries(this.feedbacks).filter(([billId, _]) => {
+        const bill = (this.bills || []).find(b => b.id.toString() === billId && b.shop_id === shop_id);
+        return !!bill;
+      })
+    };
+  }
+  // Restore all shop data
+  async restoreShopData(shop_id: string, data: any): Promise<void> {
+    // Replace all shop data for this shop_id
+    this.transactions = this.transactions.filter(t => t.shop_id !== shop_id).concat(data.transactions || []);
+    this.bills = (this.bills || []).filter(b => b.shop_id !== shop_id).concat(data.bills || []);
+    this.expenditures = this.expenditures.filter(e => e.shop_id !== shop_id).concat(data.expenditures || []);
+    this.suppliers = this.suppliers.filter(s => s.shop_id !== shop_id).concat(data.suppliers || []);
+    this.inventoryItems = this.inventoryItems.filter(i => i.shop_id !== shop_id).concat(data.inventoryItems || []);
+    this.supplierPayments = this.supplierPayments.filter(p => p.shop_id !== shop_id).concat(data.payments || []);
+    this.groupedExpenditures = this.groupedExpenditures.filter(g => g.shop_id !== shop_id).concat(data.groupedExpenditures || []);
+    this.groupedExpenditurePayments = this.groupedExpenditurePayments.filter(gp => gp.shop_id !== shop_id).concat(data.groupedExpenditurePayments || []);
+    for (const [billId, feedback] of (data.feedbacks || [])) {
+      this.feedbacks[billId] = feedback;
+    }
+  }
+  // Transactions by date range for shop
+  async getTransactionsByDateRangeForShop(shop_id: string, start: Date, end: Date): Promise<Transaction[]> {
+    return this.transactions.filter(t => t.shop_id === shop_id && t.createdAt >= start && t.createdAt <= end);
+  }
+  // Bills by date range for shop
+  async getBillsByDateRangeForShop(shop_id: string, start: Date, end: Date): Promise<any[]> {
+    return (this.bills || []).filter(b => b.shop_id === shop_id && b.createdAt >= start && b.createdAt <= end);
+  }
+  // Expenditures by date range for shop
+  async getExpendituresByDateRangeForShop(shop_id: string, start: Date, end: Date): Promise<Expenditure[]> {
+    return this.expenditures.filter(e => e.shop_id === shop_id && e.createdAt >= start && e.createdAt <= end);
+  }
+  // Save feedback for a bill
+  async saveFeedback(billId: string, feedback: string): Promise<void> {
+    this.feedbacks[billId] = feedback;
+  }
+  // Get feedback for a bill
+  async getFeedback(billId: string): Promise<string | null> {
+    return this.feedbacks[billId] || null;
+  }
+  // Today's stats for a shop
+  async getTodayStats(shop_id: string): Promise<any> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayTransactions = this.transactions.filter(t => t.shop_id === shop_id && t.createdAt >= today && t.createdAt < tomorrow);
+    return {
+      totalTransactions: todayTransactions.length,
+      totalRevenue: todayTransactions.reduce((sum, t) => sum + parseFloat(t.repairCost), 0),
+      totalProfit: todayTransactions.reduce((sum, t) => sum + (parseFloat(t.profit || '0')), 0)
+    };
+  }
+  // Yesterday's stats for a shop
+  async getYesterdayStats(shop_id: string): Promise<any> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayTransactions = this.transactions.filter(t => t.shop_id === shop_id && t.createdAt >= yesterday && t.createdAt < today);
+    return {
+      totalTransactions: yesterdayTransactions.length,
+      totalRevenue: yesterdayTransactions.reduce((sum, t) => sum + parseFloat(t.repairCost), 0),
+      totalProfit: yesterdayTransactions.reduce((sum, t) => sum + (parseFloat(t.profit || '0')), 0)
+    };
   }
 }
 

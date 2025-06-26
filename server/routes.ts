@@ -848,6 +848,102 @@ export async function registerRoutes(app: Express, io: SocketIOServer): Promise<
     });
   });
 
+  // 1. Backup all shop data
+  app.get('/api/backup', async (req, res) => {
+    try {
+      const shop_id = req.query.shop_id;
+      if (!shop_id) return res.status(400).json({ error: 'shop_id required' });
+      const data = await storage.backupShopData(shop_id);
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: 'Backup failed' });
+    }
+  });
+  // Restore all shop data
+  app.post('/api/restore', async (req, res) => {
+    try {
+      const shop_id = req.body.shop_id;
+      const data = req.body.data;
+      if (!shop_id || !data) return res.status(400).json({ error: 'shop_id and data required' });
+      await storage.restoreShopData(shop_id, data);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: 'Restore failed' });
+    }
+  });
+  // 2. Fetch transactions, bills, expenses for custom date range
+  app.get('/api/transactions/range', async (req, res) => {
+    try {
+      const { shop_id, start, end } = req.query;
+      if (!shop_id || !start || !end) return res.status(400).json({ error: 'shop_id, start, end required' });
+      const tx = await storage.getTransactionsByDateRangeForShop(shop_id, new Date(start), new Date(end));
+      res.json(tx);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to fetch transactions' });
+    }
+  });
+  app.get('/api/bills/range', async (req, res) => {
+    try {
+      const { shop_id, start, end } = req.query;
+      if (!shop_id || !start || !end) return res.status(400).json({ error: 'shop_id, start, end required' });
+      const bills = await storage.getBillsByDateRangeForShop(shop_id, new Date(start), new Date(end));
+      res.json(bills);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to fetch bills' });
+    }
+  });
+  app.get('/api/expenditures/range', async (req, res) => {
+    try {
+      const { shop_id, start, end } = req.query;
+      if (!shop_id || !start || !end) return res.status(400).json({ error: 'shop_id, start, end required' });
+      const exps = await storage.getExpendituresByDateRangeForShop(shop_id, new Date(start), new Date(end));
+      res.json(exps);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to fetch expenditures' });
+    }
+  });
+  // 3. Feedback endpoints
+  app.post('/api/feedback', async (req, res) => {
+    try {
+      const { billId, feedback } = req.body;
+      if (!billId || !feedback) return res.status(400).json({ error: 'billId and feedback required' });
+      await storage.saveFeedback(billId, feedback);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to save feedback' });
+    }
+  });
+  app.get('/api/feedback/:billId', async (req, res) => {
+    try {
+      const billId = req.params.billId;
+      const feedback = await storage.getFeedback(billId);
+      res.json({ feedback });
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to fetch feedback' });
+    }
+  });
+  // 4. Today's and yesterday's sales/profit
+  app.get('/api/stats/today', async (req, res) => {
+    try {
+      const { shop_id } = req.query;
+      if (!shop_id) return res.status(400).json({ error: 'shop_id required' });
+      const stats = await storage.getTodayStats(shop_id);
+      res.json(stats);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to fetch today\'s stats' });
+    }
+  });
+  app.get('/api/stats/yesterday', async (req, res) => {
+    try {
+      const { shop_id } = req.query;
+      if (!shop_id) return res.status(400).json({ error: 'shop_id required' });
+      const stats = await storage.getYesterdayStats(shop_id);
+      res.json(stats);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to fetch yesterday\'s stats' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
