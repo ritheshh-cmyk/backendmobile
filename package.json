@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon --watch server --exec \"ts-node server/index.ts\"",
+    "dev": "npx ts-node server/index.ts",
     "build": "npx tsc",
-    "start": "node dist/server/index.js"
+    "start": "node dist/server/index.js",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",

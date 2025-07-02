@@ -102,9 +102,29 @@ class MemStorage {
     const transaction = this.transactions[index];
     const updated: Transaction = {
       ...transaction,
-      ...data,
-      createdAt: transaction.createdAt,
-      id: transaction.id
+      ...(data.customerName && { customerName: data.customerName }),
+      ...(data.mobileNumber && { mobileNumber: data.mobileNumber }),
+      ...(data.deviceModel && { deviceModel: data.deviceModel }),
+      ...(data.repairType && { repairType: data.repairType }),
+      ...(data.repairCost && { repairCost: data.repairCost.toString() }),
+      ...(data.actualCost && { actualCost: data.actualCost.toString() }),
+      ...(data.profit && { profit: data.profit.toString() }),
+      ...(data.amountGiven && { amountGiven: data.amountGiven.toString() }),
+      ...(data.changeReturned && { changeReturned: data.changeReturned.toString() }),
+      ...(data.paymentMethod && { paymentMethod: data.paymentMethod }),
+      ...(data.externalStoreName && { externalStoreName: data.externalStoreName }),
+      ...(data.externalItemName && { externalItemName: data.externalItemName }),
+      ...(data.externalItemCost && { externalItemCost: data.externalItemCost.toString() }),
+      ...(data.internalCost && { internalCost: data.internalCost.toString() }),
+      ...(data.freeGlassInstallation !== undefined && { freeGlassInstallation: data.freeGlassInstallation }),
+      ...(data.remarks && { remarks: data.remarks }),
+      ...(data.status && { status: data.status }),
+      ...(data.requiresInventory !== undefined && { requiresInventory: data.requiresInventory }),
+      ...(data.supplierName && { supplierName: data.supplierName }),
+      ...(data.partsCost && { partsCost: data.partsCost }),
+      ...(data.customSupplierName && { customSupplierName: data.customSupplierName }),
+      ...(data.externalPurchases && { externalPurchases: JSON.stringify(data.externalPurchases) }),
+      ...(data.shop_id && { shop_id: data.shop_id })
     };
     this.transactions[index] = updated;
     return updated;
@@ -210,12 +230,12 @@ class MemStorage {
       id: this.inventoryItems.length + 1,
       partName: data.partName,
       partType: data.partType,
-      compatibleDevices: data.compatibleDevices || null,
+      compatibleDevices: data.compatibleDevices || "",
       cost: data.cost.toString(),
       sellingPrice: data.sellingPrice.toString(),
       quantity: data.quantity,
       supplier: data.supplier,
-      shop_id: data.shop_id || null,
+      shop_id: data.shop_id || "default",
       createdAt: new Date()
     };
     this.inventoryItems.push(item);
@@ -240,8 +260,9 @@ class MemStorage {
     const supplier: Supplier = {
       id: this.suppliers.length + 1,
       name: data.name,
-      contactNumber: data.contactNumber || null,
-      address: data.address || null,
+      contactNumber: data.contactNumber || "",
+      address: data.address || "",
+      shop_id: data.shop_id || "default",
       createdAt: new Date()
     };
     this.suppliers.push(supplier);
@@ -270,6 +291,7 @@ class MemStorage {
       unitCost: data.unitCost.toString(),
       totalCost: data.totalCost.toString(),
       status: data.status || "pending",
+      shop_id: data.shop_id || "default",
       orderDate: new Date(),
       receivedDate: null
     };
@@ -288,7 +310,8 @@ class MemStorage {
       supplierId: data.supplierId,
       amount: data.amount.toString(),
       paymentMethod: data.paymentMethod,
-      description: data.description || null,
+      description: data.description || "",
+      shop_id: data.shop_id || "default",
       paymentDate: new Date()
     };
     this.supplierPayments.push(payment);
@@ -310,10 +333,11 @@ class MemStorage {
       amount: data.amount.toString(),
       category: data.category,
       paymentMethod: data.paymentMethod,
-      recipient: data.recipient || null,
-      items: data.items || null,
+      recipient: data.recipient || "",
+      items: data.items || "",
       paidAmount: (data.paidAmount || 0).toString(),
       remainingAmount: (data.remainingAmount || 0).toString(),
+      shop_id: data.shop_id || "default",
       createdAt: new Date()
     };
     this.expenditures.push(expenditure);
@@ -340,8 +364,9 @@ class MemStorage {
       totalAmount: data.totalAmount.toString(),
       periodStart: data.periodStart,
       periodEnd: data.periodEnd,
-      description: data.description || null,
+      description: data.description || "",
       status: data.status || "pending",
+      shop_id: data.shop_id || "default",
       createdAt: new Date()
     };
     this.groupedExpenditures.push(expenditure);
@@ -382,7 +407,8 @@ class MemStorage {
       groupedExpenditureId: data.groupedExpenditureId,
       amount: data.amount.toString(),
       paymentMethod: data.paymentMethod,
-      description: data.description || null,
+      description: data.description || "",
+      shop_id: data.shop_id || "default",
       paymentDate: new Date(),
       createdAt: new Date()
     };
