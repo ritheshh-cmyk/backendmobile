@@ -36,4 +36,23 @@ pm2 startup
 pm2 status
 
 echo "\n✅ Backend started and managed by PM2!"
-echo "   Health check: http://localhost:10000/health" 
+echo "   Health check: http://localhost:10000/health"
+
+# --- NGROK AUTO SETUP ---
+# Set ngrok authtoken
+ngrok config add-authtoken 2z66Kn4W25ApQ7mjI3Z8BqDfFbI_4GPA3KoVKk25MpvFcKL2a || true
+
+# Write ngrok config file
+echo "version: 3
+agent:
+  authtoken: 2z66Kn4W25ApQ7mjI3Z8BqDfFbI_4GPA3KoVKk25MpvFcKL2a
+tunnels:
+  backend:
+    addr: 10000
+    proto: http
+    domain: positive-kodiak-friendly.ngrok-free.app
+" > ~/.ngrok2/ngrok.yml
+
+# Start ngrok with reserved domain in background
+nohup ngrok start backend > ngrok.log 2>&1 &
+echo "\n🌐 ngrok tunnel started: https://positive-kodiak-friendly.ngrok-free.app -> http://localhost:10000" 
